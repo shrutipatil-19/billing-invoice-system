@@ -23,7 +23,7 @@ class AdminPanelProvider extends PanelProvider
     public function panel(Panel $panel): Panel
     {
         return $panel
-            ->default()
+            ->brandName('My Invoice Dashboard')  // Change this line
             ->id('admin')
             ->path('admin')
             ->login()
