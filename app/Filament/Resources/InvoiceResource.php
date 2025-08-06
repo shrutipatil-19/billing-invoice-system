@@ -10,11 +10,10 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Columns\BadgeColumn;
-use Filament\Tables\Actions\Action;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Forms\Components\{Select, TextInput, DatePicker};
+use Filament\Tables\Columns\TextColumn;
 
 class InvoiceResource extends Resource
 {
@@ -26,13 +25,33 @@ class InvoiceResource extends Resource
     {
         return $form
             ->schema([
-                TextColumn::make('invoice_number')->searchable(),
-                TextColumn::make('client.name')->label('Client'),
-                TextColumn::make('invoice_date')->date(),
-                TextColumn::make('total_amount')->money('INR'),
-                TextColumn::make('tax_amount')->money('INR'),
-                TextColumn::make('grand_total')->money('INR'),
-               
+                Select::make('client_id')
+                    ->label('Client')
+                    ->relationship('client', 'name')
+                    ->required(),
+
+                TextInput::make('invoice_number')
+                    ->required()
+                    ->maxLength(255)
+                    ->unique(ignoreRecord: true),
+
+                DatePicker::make('invoice_date')
+                    ->required(),
+
+                TextInput::make('total_amount')
+                    ->numeric()
+                    ->prefix('₹')
+                    ->required(),
+
+                TextInput::make('tax_amount')
+                    ->numeric()
+                    ->prefix('₹')
+                    ->required(),
+
+                TextInput::make('grand_total')
+                    ->numeric()
+                    ->prefix('₹')
+                    ->required(),
             ]);
     }
 
@@ -40,20 +59,36 @@ class InvoiceResource extends Resource
     {
         return $table
             ->columns([
-                //
+                TextColumn::make('invoice_number')
+                    ->searchable()
+                    ->sortable(),
+
+                TextColumn::make('client.name')
+                    ->label('Client')
+                    ->searchable()
+                    ->sortable(),
+
+                TextColumn::make('invoice_date')
+                    ->date()
+                    ->sortable(),
+
+                TextColumn::make('total_amount')
+                    ->label('Total')
+                    ->money('INR'),
+
+                TextColumn::make('tax_amount')
+                    ->label('Tax')
+                    ->money('INR'),
+
+                TextColumn::make('grand_total')
+                    ->label('Grand Total')
+                    ->money('INR'),
             ])
             ->filters([
                 //
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-
-                // Download PDF action
-                Action::make('download_pdf')
-                    ->label('PDF')
-                    ->icon('heroicon-o-arrow-down-tray')
-                    ->url(fn(Invoice $record) => route('invoice.download', $record))
-                    ->openUrlInNewTab(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
